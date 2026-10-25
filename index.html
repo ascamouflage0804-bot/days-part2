@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英文星期學習 - Part 2 (Thursday ~ Saturday)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap');
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      background-color: #fff7ed;
+    }
+    .font-eng {
+      font-family: 'Fredoka One', cursive;
+    }
+    .btn-press {
+      transition: all 0.1s ease;
+    }
+    .btn-press:active {
+      transform: scale(0.95);
+    }
+    .drop-zone {
+      min-height: 80px;
+      border: 3px dashed #94a3b8;
+      transition: all 0.2s ease;
+    }
+    .drop-zone.drag-over {
+      background-color: #fed7aa;
+      border-color: #ea580c;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-12 text-slate-800">
+
+  <!-- 頂部標題列 -->
+  <header class="bg-orange-600 text-white shadow-md p-4 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center space-x-3">
+        <span class="text-3xl">🗓️</span>
+        <div>
+          <h1 class="text-2xl font-bold">快樂學星期 (Part 2)</h1>
+          <p class="text-xs text-orange-100">Thursday • Friday • Saturday</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button onclick="toggleAudioHelp()" class="bg-orange-700 hover:bg-orange-800 text-white px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1 shadow">
+          🔊 語音提示
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 導覽分頁按鈕 -->
+  <nav class="max-w-4xl mx-auto my-4 px-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-white p-2 rounded-2xl shadow-sm border border-orange-100">
+      <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn py-3 px-2 rounded-xl font-bold text-center flex flex-col items-center gap-1 bg-orange-500 text-white shadow">
+        <span class="text-xl">🎴</span>
+        <span class="text-sm md:text-base">分頁一：單字閃卡</span>
+      </button>
+      <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn py-3 px-2 rounded-xl font-bold text-center flex flex-col items-center gap-1 text-slate-600 hover:bg-orange-50">
+        <span class="text-xl">🎯</span>
+        <span class="text-sm md:text-base">分頁二：單字測驗</span>
+      </button>
+      <button onclick="switchTab(3)" id="tab-btn-3" class="tab-btn py-3 px-2 rounded-xl font-bold text-center flex flex-col items-center gap-1 text-slate-600 hover:bg-orange-50">
+        <span class="text-xl">💬</span>
+        <span class="text-sm md:text-base">分頁三：句型學習</span>
+      </button>
+      <button onclick="switchTab(4)" id="tab-btn-4" class="tab-btn py-3 px-2 rounded-xl font-bold text-center flex flex-col items-center gap-1 text-slate-600 hover:bg-orange-50">
+        <span class="text-xl">🏆</span>
+        <span class="text-sm md:text-base">分頁四：句型挑戰</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- 主要內容區 -->
+  <main class="max-w-4xl mx-auto px-4">
+
+    <!-- ==================== 分頁一：單字閃卡 ==================== -->
+    <section id="tab-1" class="tab-content block">
+      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-orange-100 text-center">
+        <div class="inline-block bg-amber-100 text-amber-800 font-bold px-4 py-1.5 rounded-full text-base mb-4">
+          👉 點擊發音按鈕，聽聲音並跟著大聲唸出來喔！
+        </div>
+
+        <div class="flex items-center justify-between mb-6 max-w-md mx-auto">
+          <button onclick="prevCard()" class="btn-press bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold p-4 rounded-full text-2xl shadow border">
+            ⬅️
+          </button>
+          <div class="text-slate-400 font-bold text-lg" id="card-counter">1 / 3</div>
+          <button onclick="nextCard()" class="btn-press bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold p-4 rounded-full text-2xl shadow border">
+            ➡️
+          </button>
+        </div>
+
+        <!-- 卡片本體 -->
+        <div class="max-w-md mx-auto bg-gradient-to-b from-amber-50 to-orange-50 border-4 border-orange-300 rounded-3xl p-8 shadow-inner flex flex-col items-center justify-center min-h-[300px] my-4">
+          <div id="flashcard-emoji" class="text-8xl mb-4 transform hover:scale-110 transition duration-200">⚡</div>
+          <div id="flashcard-word" class="font-eng text-5xl font-black text-slate-800 tracking-wide mb-2">
+            Thurs<span class="text-amber-500">day</span>
+          </div>
+          <div id="flashcard-zh" class="text-2xl font-bold text-orange-700 mb-6">星期四</div>
+          
+          <button onclick="playCurrentFlashcardAudio()" class="btn-press bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold px-8 py-4 rounded-2xl text-xl flex items-center gap-3 shadow-lg border-2 border-amber-300">
+            <span class="text-3xl">🔊</span> 聽發音 (跟著唸)
+          </button>
+        </div>
+
+        <!-- 快速切換按鈕 -->
+        <div class="grid grid-cols-3 gap-3 max-w-lg mx-auto mt-6">
+          <button onclick="selectCard(0)" class="card-btn p-3 rounded-xl border-2 border-orange-200 font-bold bg-orange-50 text-orange-800">1. Thursday</button>
+          <button onclick="selectCard(1)" class="card-btn p-3 rounded-xl border-2 border-slate-200 font-bold bg-white text-slate-600">2. Friday</button>
+          <button onclick="selectCard(2)" class="card-btn p-3 rounded-xl border-2 border-slate-200 font-bold bg-white text-slate-600">3. Saturday</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 分頁二：單字測驗 ==================== -->
+    <section id="tab-2" class="tab-content hidden">
+      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-orange-100">
+        
+        <!-- 關卡選擇與進度 -->
+        <div class="mb-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h2 class="text-xl font-bold text-orange-800 flex items-center gap-2">
+              <span>🎯</span> 單字闖關測驗
+            </h2>
+            <div class="text-sm font-bold bg-orange-100 text-orange-800 px-3 py-1 rounded-full" id="vocab-progress-tag">
+              已完成: 0 / 3
+            </div>
+          </div>
+
+          <div class="grid grid-cols-5 gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
+            <button onclick="setVocabLevel(1)" id="v-lvl-1" class="v-lvl-btn py-2 px-1 text-xs md:text-sm font-bold rounded-xl bg-orange-600 text-white shadow">關卡 1<br><span class="text-[10px] opacity-80">聽音選字</span></button>
+            <button onclick="setVocabLevel(2)" id="v-lvl-2" class="v-lvl-btn py-2 px-1 text-xs md:text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-200">關卡 2<br><span class="text-[10px] opacity-80">看中文選字</span></button>
+            <button onclick="setVocabLevel(3)" id="v-lvl-3" class="v-lvl-btn py-2 px-1 text-xs md:text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-200">關卡 3<br><span class="text-[10px] opacity-80">首尾字母填空</span></button>
+            <button onclick="setVocabLevel(4)" id="v-lvl-4" class="v-lvl-btn py-2 px-1 text-xs md:text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-200">關卡 4<br><span class="text-[10px] opacity-80">底線拼寫</span></button>
+            <button onclick="setVocabLevel(5)" id="v-lvl-5" class="v-lvl-btn py-2 px-1 text-xs md:text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-200">關卡 5<br><span class="text-[10px] opacity-80">自由拼寫</span></button>
+          </div>
+        </div>
+
+        <!-- 題目區域 -->
+        <div class="bg-amber-50/50 border-2 border-amber-200 p-6 rounded-3xl min-h-[340px] flex flex-col justify-between">
+          
+          <div class="text-center">
+            <div id="v-question-header" class="mb-4"></div>
+            <div id="v-interactive-area" class="my-6"></div>
+          </div>
+
+          <div class="text-center mt-4">
+            <div id="v-feedback" class="text-xl font-bold min-h-[32px] mb-3"></div>
+            <button id="v-submit-btn" onclick="checkVocabAnswer()" class="btn-press bg-orange-600 hover:bg-orange-700 text-white font-bold text-xl px-8 py-3 rounded-2xl shadow-lg border-b-4 border-orange-800">
+              送出答案 ✨
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 分頁三：句型學習 ==================== -->
+    <section id="tab-3" class="tab-content hidden">
+      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-orange-100">
+        
+        <div class="text-center mb-6">
+          <span class="bg-amber-100 text-amber-800 font-bold px-4 py-1.5 rounded-full text-base">
+            💬 拖曳星期單字到空格中，練習組合句子並聽發音！
+          </span>
+        </div>
+
+        <!-- 問句展示區 -->
+        <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6 text-center mb-6 shadow-sm">
+          <div class="text-sm font-bold text-orange-600 mb-1">問句 (Question)</div>
+          <div class="font-eng text-3xl md:text-4xl text-slate-800 mb-2">What day is it?</div>
+          <div class="text-lg font-bold text-slate-600 mb-3">今天星期幾？</div>
+          <button onclick="speakText('What day is it?')" class="btn-press bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-2 rounded-xl text-base inline-flex items-center gap-2 shadow">
+            <span>🔊</span> 聽問句發音
+          </button>
+        </div>
+
+        <!-- 答句互動拖曳區 -->
+        <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 text-center mb-8 shadow-sm">
+          <div class="text-sm font-bold text-amber-700 mb-2">答句 (Answer)</div>
+          
+          <div class="flex flex-wrap items-center justify-center gap-3 font-eng text-2xl md:text-4xl my-4">
+            <span class="bg-white px-4 py-2 rounded-xl border-2 border-amber-300 shadow-sm text-slate-800">It</span>
+            <span class="bg-white px-4 py-2 rounded-xl border-2 border-amber-300 shadow-sm text-slate-800">is</span>
+            
+            <div id="sentence-drop-zone" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event)" class="drop-zone border-4 border-dashed border-amber-400 bg-white/80 rounded-2xl px-6 py-2 min-w-[200px] flex items-center justify-center font-bold text-orange-600 shadow-inner">
+              <span class="text-slate-400 text-lg font-sans font-bold">請拖曳單字到這裡</span>
+            </div>
+            
+            <span class="text-slate-800 font-black">.</span>
+          </div>
+
+          <div id="sentence-zh-preview" class="text-xl font-bold text-amber-900 min-h-[30px] my-3">
+            今天星期...
+          </div>
+
+          <button onclick="playFullSentence3()" class="btn-press bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-2xl text-lg inline-flex items-center gap-2 shadow-lg border-b-4 border-amber-700">
+            <span>🔊</span> 唸出完整答句
+          </button>
+        </div>
+
+        <!-- 拖曳單字庫 -->
+        <div class="bg-slate-50 p-6 rounded-2xl border-2 border-slate-200">
+          <div class="text-center font-bold text-slate-700 mb-4">拖曳下方單字卡到上面區域：</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl mx-auto">
+            <div draggable="true" ondragstart="handleDragStart(event, 'Thursday', '星期四')" class="cursor-grab active:cursor-grabbing bg-amber-400 hover:bg-amber-500 text-amber-950 font-eng text-2xl font-bold p-4 rounded-2xl text-center shadow-md border-2 border-amber-300 btn-press">
+              Thurs<span class="text-amber-800">day</span>
+            </div>
+            <div draggable="true" ondragstart="handleDragStart(event, 'Friday', '星期五')" class="cursor-grab active:cursor-grabbing bg-amber-400 hover:bg-amber-500 text-amber-950 font-eng text-2xl font-bold p-4 rounded-2xl text-center shadow-md border-2 border-amber-300 btn-press">
+              Fri<span class="text-amber-800">day</span>
+            </div>
+            <div draggable="true" ondragstart="handleDragStart(event, 'Saturday', '星期六')" class="cursor-grab active:cursor-grabbing bg-amber-400 hover:bg-amber-500 text-amber-950 font-eng text-2xl font-bold p-4 rounded-2xl text-center shadow-md border-2 border-amber-300 btn-press">
+              Satur<span class="text-amber-800">day</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== 分頁四：句型挑戰 ==================== -->
+    <section id="tab-4" class="tab-content hidden">
+      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-orange-100">
+        
+        <div class="mb-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h2 class="text-xl font-bold text-orange-800 flex items-center gap-2">
+              <span>🏆</span> 句型多層次大挑戰
+            </h2>
+            <div class="text-sm font-bold bg-orange-100 text-orange-800 px-3 py-1 rounded-full" id="sentence-progress-tag">
+              已完成: 0 / 3
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-100 p-1.5 rounded-2xl">
+            <button onclick="setSentLevel(1)" id="s-lvl-1" class="s-lvl-btn py-2 px-2 text-xs md:text-sm font-bold rounded-xl bg-orange-600 text-white shadow">關卡 1<br><span class="text-[10px] opacity-80">跟讀朗誦</span></button>
+            <button onclick="setSentLevel(2)" id="s-lvl-2" class="s-lvl-btn py-2 px-2 text-xs md:text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-200">關卡 2<br><span class="text-[10px] opacity-80">單字替換拖曳</span></button>
+            <button onclick="setSentLevel(3)" id="s-lvl-3" class="s-lvl-btn py-2 px-2 text-xs md:text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-200">關卡 3<br><span class="text-[10px] opacity-80">句型重組</span></button>
+            <button onclick="setSentLevel(4)" id="s-lvl-4" class="s-lvl-btn py-2 px-2 text-xs md:text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-200">關卡 4<br><span class="text-[10px] opacity-80">選擇題測驗</span></button>
+          </div>
+        </div>
+
+        <div class="bg-amber-50/50 border-2 border-amber-200 p-6 rounded-3xl min-h-[360px] flex flex-col justify-between">
+          
+          <div id="s-question-container" class="text-center"></div>
+
+          <div class="text-center mt-4">
+            <div id="s-feedback" class="text-xl font-bold min-h-[32px] mb-3"></div>
+            <button id="s-action-btn" onclick="handleSentenceAction()" class="btn-press bg-orange-600 hover:bg-orange-700 text-white font-bold text-xl px-8 py-3 rounded-2xl shadow-lg border-b-4 border-orange-800">
+              確認送出 ✨
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 慶祝彈跳視窗 -->
+  <div id="good-job-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center border-4 border-amber-400 shadow-2xl">
+      <div class="text-7xl mb-4 animate-bounce">🎉</div>
+      <h3 class="font-eng text-4xl font-black text-amber-500 mb-2">Good Job!</h3>
+      <p class="text-slate-700 text-xl font-bold mb-6">太棒了！你已經順利完成這個關卡囉！🌟</p>
+      <button onclick="closeGoodJobModal()" class="btn-press w-full bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold text-xl py-3 rounded-2xl shadow-lg border-b-4 border-amber-600">
+        繼續挑戰下一個 🚀
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const WORDS = [
+      { en: 'Thursday', zh: '星期四', emoji: '⚡', hint: 'T_u_ _y' },
+      { en: 'Friday', zh: '星期五', emoji: '🎉', hint: 'F_i_ _y' },
+      { en: 'Saturday', zh: '星期六', emoji: '🎈', hint: 'S_t_ _y' }
+    ];
+
+    let currentCardIndex = 0;
+    let vLevel = 1;
+    let vTargetWordIndex = 0;
+    let vCompletedSet = new Set();
+    
+    let p3SelectedWord = 'Thursday';
+    let p3SelectedZh = '星期四';
+
+    let sLevel = 1;
+    let sTargetWordIndex = 0;
+    let sCompletedSet = new Set();
+    let sUnscrambleUserBlocks = [];
+
+    function speakText(text, onEndCallback = null) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.85;
+        if (onEndCallback) utterance.onend = onEndCallback;
+        window.speechSynthesis.speak(utterance);
+      } else if (onEndCallback) {
+        onEndCallback();
+      }
+    }
+
+    function toggleAudioHelp() {
+      speakText("Welcome! What day is it? Let's practice English days of the week.");
+    }
+
+    function triggerGoodJobCelebration() {
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      }
+      document.getElementById('good-job-modal').classList.remove('hidden');
+    }
+
+    function closeGoodJobModal() {
+      document.getElementById('good-job-modal').classList.add('hidden');
+    }
+
+    function switchTab(tabNum) {
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`tab-${i}`).classList.add('hidden');
+        document.getElementById(`tab-${i}`).classList.remove('block');
+        const btn = document.getElementById(`tab-btn-${i}`);
+        btn.classList.remove('bg-orange-500', 'text-white', 'shadow');
+        btn.classList.add('text-slate-600');
+      }
+      
+      document.getElementById(`tab-${tabNum}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabNum}`).classList.add('block');
+      
+      const activeBtn = document.getElementById(`tab-btn-${tabNum}`);
+      activeBtn.classList.add('bg-orange-500', 'text-white', 'shadow');
+      activeBtn.classList.remove('text-slate-600');
+
+      if (tabNum === 2) renderVocabQuestion();
+      if (tabNum === 4) renderSentenceQuestion();
+    }
+
+    function renderFlashcard() {
+      const card = WORDS[currentCardIndex];
+      document.getElementById('flashcard-emoji').innerText = card.emoji;
+      
+      const prefix = card.en.replace('day', '');
+      document.getElementById('flashcard-word').innerHTML = `${prefix}<span class="text-amber-500">day</span>`;
+      
+      document.getElementById('flashcard-zh').innerText = card.zh;
+      document.getElementById('card-counter').innerText = `${currentCardIndex + 1} / ${WORDS.length}`;
+
+      const buttons = document.querySelectorAll('.card-btn');
+      buttons.forEach((btn, idx) => {
+        if (idx === currentCardIndex) {
+          btn.className = "card-btn p-3 rounded-xl border-2 border-orange-500 font-bold bg-orange-50 text-orange-800 shadow";
+        } else {
+          btn.className = "card-btn p-3 rounded-xl border-2 border-slate-200 font-bold bg-white text-slate-600";
+        }
+      });
+      playCurrentFlashcardAudio();
+    }
+
+    function playCurrentFlashcardAudio() {
+      speakText(WORDS[currentCardIndex].en);
+    }
+
+    function nextCard() {
+      currentCardIndex = (currentCardIndex + 1) % WORDS.length;
+      renderFlashcard();
+    }
+
+    function prevCard() {
+      currentCardIndex = (currentCardIndex - 1 + WORDS.length) % WORDS.length;
+      renderFlashcard();
+    }
+
+    function selectCard(idx) {
+      currentCardIndex = idx;
+      renderFlashcard();
+    }
+
+    function setVocabLevel(lvl) {
+      vLevel = lvl;
+      vCompletedSet.clear();
+      vTargetWordIndex = 0;
+      
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.getElementById(`v-lvl-${i}`);
+        if (i === lvl) {
+          btn.className = "v-lvl-btn py-2 px-1 text-xs md:text-sm font-bold rounded-xl bg-orange-600 text-white shadow";
+        } else {
+          btn.className = "v-lvl-btn py-2 px-1 text-xs md:text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-200";
+        }
+      }
+      renderVocabQuestion();
+    }
+
+    function renderVocabQuestion() {
+      const header = document.getElementById('v-question-header');
+      const interactive = document.getElementById('v-interactive-area');
+      const feedback = document.getElementById('v-feedback');
+      const submitBtn = document.getElementById('v-submit-btn');
+
+      feedback.innerText = '';
+      document.getElementById('vocab-progress-tag').innerText = `已完成: ${vCompletedSet.size} / ${WORDS.length}`;
+
+      const targetWord = WORDS[vTargetWordIndex];
+
+      if (vLevel === 1) {
+        header.innerHTML = `
+          <p class="text-lg font-bold text-slate-700 mb-3">請點擊喇叭聽發音，選出正確的單字：</p>
+          <button onclick="speakText('${targetWord.en}')" class="btn-press bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold px-6 py-3 rounded-2xl text-xl inline-flex items-center gap-2 shadow-md border-2 border-amber-300">
+            <span class="text-3xl">🔊</span> 播放單字語音
+          </button>
+        `;
+        let options = shuffleOptions(vTargetWordIndex);
+        interactive.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
+            ${options.map(opt => `
+              <button onclick="selectVocabOption('${opt.en}')" class="v-opt-btn btn-press p-4 rounded-2xl border-2 border-slate-200 bg-white hover:bg-orange-50 font-eng text-2xl font-bold text-slate-800 shadow">
+                ${opt.en.replace('day', '')}<span class="text-amber-500">day</span>
+              </button>
+            `).join('')}
+          </div>
+        `;
+        submitBtn.classList.add('hidden');
+        speakText(targetWord.en);
+
+      } else if (vLevel === 2) {
+        header.innerHTML = `
+          <div class="text-4xl mb-2">${targetWord.emoji}</div>
+          <div class="text-3xl font-black text-orange-800 mb-2">${targetWord.zh}</div>
+          <p class="text-slate-600 font-bold">請選出正確的英文單字：</p>
+        `;
+        let options = shuffleOptions(vTargetWordIndex);
+        interactive.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
+            ${options.map(opt => `
+              <button onclick="selectVocabOption('${opt.en}')" class="v-opt-btn btn-press p-4 rounded-2xl border-2 border-slate-200 bg-white hover:bg-orange-50 font-eng text-2xl font-bold text-slate-800 shadow">
+                ${opt.en}
+              </button>
+            `).join('')}
+          </div>
+        `;
+        submitBtn.classList.add('hidden');
+
+      } else if (vLevel === 3) {
+        header.innerHTML = `
+          <div class="text-3xl mb-2">${targetWord.emoji} ${targetWord.zh}</div>
+          <p class="text-slate-700 font-bold text-lg mb-2">參考提示填入正確單字：</p>
+          <div class="font-eng text-3xl font-bold text-amber-600 tracking-widest bg-white inline-block px-6 py-2 rounded-xl border border-amber-300 shadow-sm">
+            ${targetWord.hint}
+          </div>
+        `;
+        interactive.innerHTML = `
+          <div class="max-w-xs mx-auto">
+            <input type="text" id="v-input-text" autocomplete="off" placeholder="請在此打字..." class="w-full text-center font-eng text-3xl font-bold p-3 border-4 border-orange-400 rounded-2xl focus:outline-none focus:border-orange-600 shadow-inner">
+          </div>
+        `;
+        submitBtn.classList.remove('hidden');
+
+      } else if (vLevel === 4) {
+        const len = targetWord.en.length;
+        header.innerHTML = `
+          <div class="text-3xl mb-2">${targetWord.emoji} ${targetWord.zh}</div>
+          <p class="text-slate-700 font-bold text-lg mb-2">依底線格子數拼出單字（共 ${len} 個字母）：</p>
+          <div class="flex justify-center gap-2 my-3">
+            ${Array(len).fill(0).map(() => `<div class="w-8 h-10 border-b-4 border-slate-800"></div>`).join('')}
+          </div>
+        `;
+        interactive.innerHTML = `
+          <div class="max-w-xs mx-auto">
+            <input type="text" id="v-input-text" autocomplete="off" placeholder="輸入單字..." class="w-full text-center font-eng text-3xl font-bold p-3 border-4 border-orange-400 rounded-2xl focus:outline-none focus:border-orange-600 shadow-inner">
+          </div>
+        `;
+        submitBtn.classList.remove('hidden');
+
+      } else if (vLevel === 5) {
+        header.innerHTML = `
+          <div class="text-3xl mb-2">${targetWord.emoji} ${targetWord.zh}</div>
+          <p class="text-slate-700 font-bold text-lg mb-2">請看中文，完全憑記憶打出英文單字：</p>
+        `;
+        interactive.innerHTML = `
+          <div class="max-w-xs mx-auto">
+            <input type="text" id="v-input-text" autocomplete="off" placeholder="輸入完整單字..." class="w-full text-center font-eng text-3xl font-bold p-3 border-4 border-orange-400 rounded-2xl focus:outline-none focus:border-orange-600 shadow-inner">
+          </div>
+        `;
+        submitBtn.classList.remove('hidden');
+      }
+    }
+
+    function shuffleOptions(targetIdx) {
+      let opts = [WORDS[targetIdx]];
+      let otherIndices = [0, 1, 2].filter(i => i !== targetIdx);
+      otherIndices.sort(() => Math.random() - 0.5);
+      opts.push(WORDS[otherIndices[0]], WORDS[otherIndices[1]]);
+      return opts.sort(() => Math.random() - 0.5);
+    }
+
+    function selectVocabOption(selectedEn) {
+      checkVocabResult(selectedEn);
+    }
+
+    function checkVocabAnswer() {
+      const input = document.getElementById('v-input-text');
+      if (!input) return;
+      checkVocabResult(input.value.trim());
+    }
+
+    function checkVocabResult(userAns) {
+      const target = WORDS[vTargetWordIndex];
+      const feedback = document.getElementById('v-feedback');
+
+      if (userAns.toLowerCase() === target.en.toLowerCase()) {
+        feedback.className = "text-xl font-bold text-emerald-600";
+        feedback.innerText = "⭕ 答對了！太棒了！";
+        
+        speakText(target.en, () => {
+          speakText("Good job!");
+          vCompletedSet.add(vTargetWordIndex);
+          document.getElementById('vocab-progress-tag').innerText = `已完成: ${vCompletedSet.size} / ${WORDS.length}`;
+
+          if (vCompletedSet.size === WORDS.length) {
+            setTimeout(triggerGoodJobCelebration, 500);
+          } else {
+            do {
+              vTargetWordIndex = (vTargetWordIndex + 1) % WORDS.length;
+            } while (vCompletedSet.has(vTargetWordIndex));
+            setTimeout(renderVocabQuestion, 1000);
+          }
+        });
+
+      } else {
+        feedback.className = "text-xl font-bold text-rose-600";
+        feedback.innerText = "❌ 再試一次看看喔！加油！";
+        speakText("Try again");
+      }
+    }
+
+    function handleDragStart(e, wordEn, wordZh) {
+      e.dataTransfer.setData('text/plain', JSON.stringify({ en: wordEn, zh: wordZh }));
+    }
+
+    function allowDrop(e) {
+      e.preventDefault();
+      document.getElementById('sentence-drop-zone').classList.add('drag-over');
+    }
+
+    function dragLeave(e) {
+      document.getElementById('sentence-drop-zone').classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const dropZone = document.getElementById('sentence-drop-zone');
+      dropZone.classList.remove('drag-over');
+      
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      p3SelectedWord = data.en;
+      p3SelectedZh = data.zh;
+
+      dropZone.innerHTML = `<span class="font-eng text-3xl font-black text-orange-600">${data.en}</span>`;
+      document.getElementById('sentence-zh-preview').innerText = `今天 ${data.zh}。`;
+      
+      speakText(`It is ${data.en}.`);
+    }
+
+    function playFullSentence3() {
+      speakText(`It is ${p3SelectedWord}.`);
+    }
+
+    function setSentLevel(lvl) {
+      sLevel = lvl;
+      sCompletedSet.clear();
+      sTargetWordIndex = 0;
+
+      for (let i = 1; i <= 4; i++) {
+        const btn = document.getElementById(`s-lvl-${i}`);
+        if (i === lvl) {
+          btn.className = "s-lvl-btn py-2 px-2 text-xs md:text-sm font-bold rounded-xl bg-orange-600 text-white shadow";
+        } else {
+          btn.className = "s-lvl-btn py-2 px-2 text-xs md:text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-200";
+        }
+      }
+      renderSentenceQuestion();
+    }
+
+    function renderSentenceQuestion() {
+      const container = document.getElementById('s-question-container');
+      const feedback = document.getElementById('s-feedback');
+      const actionBtn = document.getElementById('s-action-btn');
+
+      feedback.innerText = '';
+      document.getElementById('sentence-progress-tag').innerText = `已完成: ${sCompletedSet.size} / ${WORDS.length}`;
+
+      const target = WORDS[sTargetWordIndex];
+
+      if (sLevel === 1) {
+        container.innerHTML = `
+          <p class="text-lg font-bold text-slate-700 mb-2">第一關：請跟著語音朗誦問句與答句</p>
+          <div class="bg-white p-4 rounded-2xl border border-orange-100 max-w-md mx-auto my-3 shadow-sm">
+            <div class="text-sm font-bold text-orange-600">問句</div>
+            <div class="font-eng text-3xl text-slate-800">What day is it?</div>
+            <div class="text-slate-500 font-bold">今天星期幾？</div>
+            <button onclick="speakText('What day is it?')" class="mt-2 bg-orange-100 text-orange-700 font-bold px-4 py-1.5 rounded-xl text-sm">🔊 聽問句</button>
+          </div>
+          
+          <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 max-w-md mx-auto my-3 shadow-sm">
+            <div class="text-sm font-bold text-amber-700">答句 (${target.zh})</div>
+            <div class="font-eng text-3xl text-slate-800">It is ${target.en}.</div>
+            <div class="text-amber-800 font-bold">今天是${target.zh}。</div>
+            <button onclick="speakText('It is ${target.en}.')" class="mt-2 bg-amber-200 text-amber-900 font-bold px-4 py-1.5 rounded-xl text-sm">🔊 聽答句</button>
+          </div>
+        `;
+        actionBtn.innerText = "我唸完了，下一題 ➔";
+        actionBtn.onclick = handleLevel1Next;
+
+      } else if (sLevel === 2) {
+        container.innerHTML = `
+          <p class="text-lg font-bold text-slate-700 mb-2">關卡二：請拖曳【${target.zh}】的單字完成句子</p>
+          <div class="font-eng text-2xl md:text-3xl my-6 flex flex-wrap items-center justify-center gap-2">
+            <span>It</span> <span>is</span>
+            <div id="s-drop-zone-2" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDropS2(event)" class="drop-zone border-4 border-dashed border-orange-300 bg-white rounded-2xl px-6 py-2 min-w-[180px] text-orange-600 font-bold">
+              <span class="text-slate-400 text-base font-sans font-bold">拖曳單字到這</span>
+            </div>
+            <span>.</span>
+          </div>
+
+          <div class="flex justify-center gap-3 my-4">
+            ${WORDS.map(w => `
+              <div draggable="true" ondragstart="handleDragStart(event, '${w.en}', '${w.zh}')" class="cursor-grab bg-amber-400 hover:bg-amber-500 text-amber-950 font-eng text-xl font-bold py-2 px-4 rounded-xl shadow border">
+                ${w.en}
+              </div>
+            `).join('')}
+          </div>
+        `;
+        actionBtn.innerText = "確認答案 ✨";
+        actionBtn.onclick = checkLevel2;
+
+      } else if (sLevel === 3) {
+        sUnscrambleUserBlocks = [];
+        container.innerHTML = `
+          <p class="text-lg font-bold text-slate-700 mb-2">關卡三：請重組出【今天是${target.zh}。】的英文句子</p>
+          <div id="unscramble-target" class="min-h-[70px] bg-white border-3 border-dashed border-orange-300 rounded-2xl p-3 flex flex-wrap items-center justify-center gap-2 max-w-lg mx-auto my-4 shadow-inner">
+            <span class="text-slate-400 font-bold">點擊下方積木組合句子...</span>
+          </div>
+          <div id="unscramble-source" class="flex flex-wrap justify-center gap-2 max-w-lg mx-auto my-4"></div>
+        `;
+        renderUnscrambleBlocks(target.en);
+        actionBtn.innerText = "檢查句子 ✨";
+        actionBtn.onclick = checkLevel3;
+
+      } else if (sLevel === 4) {
+        container.innerHTML = `
+          <div class="text-2xl font-bold text-orange-900 mb-2">題目：問句是「What day is it?」</div>
+          <p class="text-slate-700 font-bold mb-4">請問代表【今天是${target.zh}。】的正確答句是哪一個？</p>
+          <div id="s-mc-options" class="grid grid-cols-1 gap-3 max-w-md mx-auto"></div>
+        `;
+        renderSentenceMCOptions(target);
+        actionBtn.classList.add('hidden');
+      }
+    }
+
+    function handleLevel1Next() {
+      sCompletedSet.add(sTargetWordIndex);
+      document.getElementById('sentence-progress-tag').innerText = `已完成: ${sCompletedSet.size} / ${WORDS.length}`;
+      if (sCompletedSet.size === WORDS.length) {
+        triggerGoodJobCelebration();
+      } else {
+        do {
+          sTargetWordIndex = (sTargetWordIndex + 1) % WORDS.length;
+        } while (sCompletedSet.has(sTargetWordIndex));
+        renderSentenceQuestion();
+      }
+    }
+
+    function handleDropS2(e) {
+      e.preventDefault();
+      const dropZone = document.getElementById('s-drop-zone-2');
+      dropZone.classList.remove('drag-over');
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      dropZone.innerHTML = `<span class="font-eng text-2xl font-bold text-orange-700" data-word="${data.en}">${data.en}</span>`;
+    }
+
+    function checkLevel2() {
+      const dropZone = document.getElementById('s-drop-zone-2');
+      const target = WORDS[sTargetWordIndex];
+      const wordSpan = dropZone.querySelector('[data-word]');
+      const feedback = document.getElementById('s-feedback');
+
+      if (wordSpan && wordSpan.getAttribute('data-word') === target.en) {
+        feedback.className = "text-xl font-bold text-emerald-600";
+        feedback.innerText = "⭕ 正確！組合成功！";
+        speakText(`It is ${target.en}.`, () => {
+          speakText("Good job!");
+          sCompletedSet.add(sTargetWordIndex);
+          if (sCompletedSet.size === WORDS.length) {
+            triggerGoodJobCelebration();
+          } else {
+            do {
+              sTargetWordIndex = (sTargetWordIndex + 1) % WORDS.length;
+            } while (sCompletedSet.has(sTargetWordIndex));
+            setTimeout(renderSentenceQuestion, 1200);
+          }
+        });
+      } else {
+        feedback.className = "text-xl font-bold text-rose-600";
+        feedback.innerText = "❌ 不太對喔，再試試看！";
+        speakText("Try again");
+      }
+    }
+
+    function renderUnscrambleBlocks(targetWordEn) {
+      const sourceBox = document.getElementById('unscramble-source');
+      let otherWords = WORDS.filter(w => w.en !== targetWordEn);
+      let distractor = otherWords[Math.floor(Math.random() * otherWords.length)].en;
+
+      let blocks = ['It', 'is', targetWordEn, distractor, '.'];
+      blocks.sort(() => Math.random() - 0.5);
+
+      sourceBox.innerHTML = blocks.map((b, idx) => `
+        <button onclick="pickUnscrambleBlock(this, '${b}')" class="btn-press bg-white hover:bg-orange-50 border-2 border-orange-300 font-eng text-2xl font-bold text-orange-900 px-4 py-2 rounded-2xl shadow">
+          ${b}
+        </button>
+      `).join('');
+    }
+
+    function pickUnscrambleBlock(btnEl, word) {
+      sUnscrambleUserBlocks.push(word);
+      btnEl.disabled = true;
+      btnEl.classList.add('opacity-40');
+      updateUnscrambleTargetUI();
+    }
+
+    function updateUnscrambleTargetUI() {
+      const targetBox = document.getElementById('unscramble-target');
+      if (sUnscrambleUserBlocks.length === 0) {
+        targetBox.innerHTML = `<span class="text-slate-400 font-bold">點擊下方積木組合句子...</span>`;
+        return;
+      }
+      targetBox.innerHTML = sUnscrambleUserBlocks.map((b, idx) => `
+        <span onclick="removeUnscrambleBlock(${idx})" class="btn-press bg-orange-600 text-white font-eng text-2xl font-bold px-4 py-2 rounded-2xl shadow cursor-pointer">
+          ${b}
+        </span>
+      `).join('');
+    }
+
+    function removeUnscrambleBlock(index) {
+      const removed = sUnscrambleUserBlocks.splice(index, 1)[0];
+      const sourceBox = document.getElementById('unscramble-source');
+      const buttons = sourceBox.querySelectorAll('button');
+      buttons.forEach(btn => {
+        if (btn.innerText.trim() === removed && btn.disabled) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-40');
+        }
+      });
+      updateUnscrambleTargetUI();
+    }
+
+    function checkLevel3() {
+      const targetWordEn = WORDS[sTargetWordIndex].en;
+      const expectedStr = `It is ${targetWordEn} .`;
+      const userStr = sUnscrambleUserBlocks.join(' ');
+      const feedback = document.getElementById('s-feedback');
+
+      if (userStr === expectedStr) {
+        feedback.className = "text-xl font-bold text-emerald-600";
+        feedback.innerText = "⭕ 句子重組完全正確！";
+        speakText(`It is ${targetWordEn}.`, () => {
+          speakText("Good job!");
+          sCompletedSet.add(sTargetWordIndex);
+          if (sCompletedSet.size === WORDS.length) {
+            triggerGoodJobCelebration();
+          } else {
+            do {
+              sTargetWordIndex = (sTargetWordIndex + 1) % WORDS.length;
+            } while (sCompletedSet.has(sTargetWordIndex));
+            setTimeout(renderSentenceQuestion, 1200);
+          }
+        });
+      } else {
+        feedback.className = "text-xl font-bold text-rose-600";
+        feedback.innerText = "❌ 排列順序不太對喔，再檢查看看！";
+        speakText("Try again");
+      }
+    }
+
+    function renderSentenceMCOptions(target) {
+      const mcBox = document.getElementById('s-mc-options');
+      let options = [
+        { text: `It is ${target.en}.`, correct: true },
+        { text: `What day is it?`, correct: false },
+        { text: `It is Day.`, correct: false }
+      ];
+      options.sort(() => Math.random() - 0.5);
+
+      mcBox.innerHTML = options.map(opt => `
+        <button onclick="checkSentenceMC(${opt.correct}, '${target.en}')" class="btn-press p-4 rounded-2xl border-2 border-slate-200 bg-white hover:bg-orange-50 font-eng text-xl font-bold text-slate-800 shadow text-center">
+          ${opt.text}
+        </button>
+      `).join('');
+    }
+
+    function checkSentenceMC(isCorrect, wordEn) {
+      const feedback = document.getElementById('s-feedback');
+      if (isCorrect) {
+        feedback.className = "text-xl font-bold text-emerald-600";
+        feedback.innerText = "⭕ 答對了！這就是正確答句！";
+        speakText(`It is ${wordEn}.`, () => {
+          speakText("Good job!");
+          sCompletedSet.add(sTargetWordIndex);
+          if (sCompletedSet.size === WORDS.length) {
+            triggerGoodJobCelebration();
+          } else {
+            do {
+              sTargetWordIndex = (sTargetWordIndex + 1) % WORDS.length;
+            } while (sCompletedSet.has(sTargetWordIndex));
+            setTimeout(renderSentenceQuestion, 1200);
+          }
+        });
+      } else {
+        feedback.className = "text-xl font-bold text-rose-600";
+        feedback.innerText = "❌ 選項不正確喔，再想想看！";
+        speakText("Try again");
+      }
+    }
+
+    function handleSentenceAction() {}
+
+    window.onload = () => {
+      renderFlashcard();
+    };
+  </script>
+</body>
+</html>
